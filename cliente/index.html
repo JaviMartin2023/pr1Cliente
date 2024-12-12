@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cartas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        .area-elementos {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .elemento {
+            width: 60px;
+            height: 90px;
+            margin: 5px;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            text-align: center;
+            color: black;
+            position: relative;
+            cursor: move;
+        }
+
+        .elemento .numero {
+            font-size: 12px;
+            position: absolute;
+        }
+
+        .elemento .numero.top {
+            top: 5px;
+            left: 5px;
+        }
+
+        .elemento .numero.bottom {
+            bottom: 5px;
+            right: 5px;
+            transform: rotate(180deg);
+        }
+
+        .elemento .palo {
+            font-size: 24px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .elemento.red {
+            color: red;
+        }
+
+        .area-contenedores {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            max-width: 600px;
+            margin: 20px 0;
+        }
+
+        .contenedor {
+            width: 70px;
+            height: 300px;
+            border: 2px dashed #ccc;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            background-color: white;
+            position: relative;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
+        .contenedor.drag-over {
+            background-color: #f0f8ff;
+        }
+    </style>
+</head>
+<body>
+    <h1>Cartas</h1>
+
+    <!-- Área inicial para las cartas -->
+    <div class="area-elementos" id="areaElementos"></div>
+
+    <!-- Contenedores para los palos -->
+    <div class="area-contenedores">
+        <div class="contenedor" id="contenedor1" data-palo="♥"></div>
+        <div class="contenedor" id="contenedor2" data-palo="♦"></div>
+        <div class="contenedor" id="contenedor3" data-palo="♣"></div>
+        <div class="contenedor" id="contenedor4" data-palo="♠"></div>
+    </div>
+
+    <!-- Vinculamos el archivo JavaScript -->
+    <script type="module" src="js/CardGame.js"></script>
+
+</body>
+</html>
