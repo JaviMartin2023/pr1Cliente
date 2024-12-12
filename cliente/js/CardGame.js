@@ -152,7 +152,7 @@ class CardGame {
             errorElement.style.display = 'block';
             setTimeout(() => {
                 errorElement.style.display = 'none';
-            }, 3000);
+            }, 3000); // El mensaje desaparecerá después de 3 segundos
         }
     }
 
