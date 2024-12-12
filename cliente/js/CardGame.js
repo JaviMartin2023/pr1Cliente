@@ -1,19 +1,48 @@
-// Archivo: CardGame.js
-
 class CardGame {
     constructor(areaElementosSelector, contenedorSelector, palos, colores) {
         this.areaElementos = document.querySelector(areaElementosSelector);
         this.contenedores = document.querySelectorAll(contenedorSelector);
         this.palos = palos;
         this.colores = colores;
+        this.cartasOriginales = {}; // Almacenamos el estado original de las cartas
     }
 
     async inicializar() {
         await this.cargarEstado(); // Cargar el estado inicial
         this.crearCartas();
         this.agregarEventosContenedores();
+        this.registrarEventoReinicio(); // Registra el evento de reinicio
     }
-    
+
+    // Guardar el estado original de las cartas en sus contenedores
+    guardarEstadoOriginal() {
+        this.cartasOriginales = {}; // Reiniciamos el objeto de cartas originales
+        this.contenedores.forEach(contenedor => {
+            const cartas = Array.from(contenedor.children).map(carta => carta.id);
+            this.cartasOriginales[contenedor.id] = cartas;
+        });
+    }
+
+    reiniciarJuego() {
+        // Mover todas las cartas a la baraja (areaElementos)
+        this.contenedores.forEach(contenedor => {
+            while (contenedor.firstChild) {
+                this.areaElementos.appendChild(contenedor.firstChild); // Mueve las cartas a la baraja
+            }
+        });
+
+        // Volver a agregar los eventos de arrastre
+        this.agregarEventosArrastre();
+    }
+
+    registrarEventoReinicio() {
+        const botonReinicio = document.getElementById('reiniciar');
+        if (botonReinicio) {
+            botonReinicio.addEventListener('click', () => {
+                this.reiniciarJuego();
+            });
+        }
+    }
 
     crearCartas() {
         this.palos.forEach((palo, i) => {
@@ -49,7 +78,7 @@ class CardGame {
         carta.appendChild(numeroBottom);
         carta.appendChild(simbolo);
 
-        // Agregar eventos de drag and drop
+        // Agregar el evento de arrastre
         carta.addEventListener('dragstart', (e) => {
             e.dataTransfer.setData('text', e.target.id);
         });
@@ -78,69 +107,70 @@ class CardGame {
             console.error('Error al guardar el estado:', error);
         }
     }
-    
+
     agregarEventosContenedores() {
         this.contenedores.forEach(contenedor => {
             contenedor.addEventListener('dragover', (e) => {
-                e.preventDefault(); // Permitir que sea un destino de drop
+                e.preventDefault();
             });
-    
+
             contenedor.addEventListener('drop', async (e) => {
                 e.preventDefault();
-    
                 const idCarta = e.dataTransfer.getData('text');
                 const carta = document.getElementById(idCarta);
-    
-                if (!carta) {
-                    console.error('No se encontró la carta:', idCarta);
-                    return;
-                }
-    
-                // Validar si la carta puede ser soltada en este contenedor
-                const cartaNumero = parseInt(idCarta.slice(1)); // Número de la carta
-                const cartaPalo = idCarta[0]; // Palo de la carta
-    
-                const cartasEnContenedor = Array.from(contenedor.children);
-                if (cartasEnContenedor.length > 0) {
-                    // Obtener la última carta en el contenedor
-                    const ultimaCartaId = cartasEnContenedor[cartasEnContenedor.length - 1].id;
-                    const ultimaCartaNumero = parseInt(ultimaCartaId.slice(1));
-                    const ultimaCartaPalo = ultimaCartaId[0];
-    
-                    // Validar palo y secuencia
-                    if (cartaPalo !== ultimaCartaPalo) {
-                        console.error('El palo no coincide:', cartaPalo, ultimaCartaPalo);
-                        return;
-                    }
-                    if (cartaNumero !== ultimaCartaNumero + 1) {
-                        console.error('La carta no sigue la secuencia:', cartaNumero, ultimaCartaNumero);
+                const cartaDestino = contenedor.lastChild;
+
+                // Comprobar que la carta arrastrada sea del mismo palo y consecutiva
+                if (cartaDestino) {
+                    const paloDestino = cartaDestino.id.charAt(0);
+                    const numDestino = parseInt(cartaDestino.id.substring(1));
+
+                    const paloArrastrada = carta.id.charAt(0);
+                    const numArrastrada = parseInt(carta.id.substring(1));
+
+                    if (paloDestino === paloArrastrada && numArrastrada === numDestino + 1) {
+                        contenedor.appendChild(carta);
+                    } else {
+                        // Mostrar mensaje de error si no cumple las reglas
+                        this.mostrarError("Las cartas deben ser del mismo palo y consecutivas.");
                         return;
                     }
                 } else {
-                    // Si el contenedor está vacío, solo permitir cartas con número 1
-                    if (cartaNumero !== 1) {
-                        console.error('Solo se puede iniciar con un As (1):', cartaNumero);
-                        return;
-                    }
+                    contenedor.appendChild(carta);
                 }
-    
-                // Si pasa todas las validaciones, añadir la carta al contenedor
-                contenedor.appendChild(carta);
-    
+
                 // Guardar el nuevo estado en el servidor
                 await this.guardarEstado();
             });
         });
     }
-    
-    
-    
-    
+
+    mostrarError(mensaje) {
+        const errorElement = document.getElementById('error');
+        if (errorElement) {
+            errorElement.textContent = mensaje;
+            errorElement.style.display = 'block';
+            setTimeout(() => {
+                errorElement.style.display = 'none';
+            }, 3000);
+        }
+    }
+
+    // Volver a agregar los eventos de arrastre después de reiniciar
+    agregarEventosArrastre() {
+        const cartas = document.querySelectorAll('.elemento');
+        cartas.forEach(carta => {
+            carta.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text', e.target.id);
+            });
+        });
+    }
+
     async cargarEstado() {
         try {
             const respuesta = await fetch('http://localhost:3000/api/estado');
             const datos = await respuesta.json();
-    
+
             // Reconstruir el estado del juego
             Object.entries(datos.contenedores).forEach(([id, cartas]) => {
                 const contenedor = document.getElementById(id);
@@ -149,11 +179,14 @@ class CardGame {
                     if (carta) contenedor.appendChild(carta);
                 });
             });
+
+            // Guardar las cartas originales
+            this.guardarEstadoOriginal();
+
         } catch (error) {
             console.error('Error al cargar el estado:', error);
         }
     }
-    
 }
 
 // Inicialización

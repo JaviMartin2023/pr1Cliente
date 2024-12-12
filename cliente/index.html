@@ -87,6 +87,11 @@
         .contenedor.drag-over {
             background-color: #f0f8ff;
         }
+
+        .error-container {
+            margin-top: 50px;
+            color: red;
+        }
     </style>
 </head>
 <body>
@@ -102,6 +107,11 @@
         <div class="contenedor" id="contenedor3" data-palo="♣"></div>
         <div class="contenedor" id="contenedor4" data-palo="♠"></div>
     </div>
+
+    <button id="reiniciar">Reiniciar Juego</button>
+    <div id="error-container"></div>
+
+
 
     <!-- Vinculamos el archivo JavaScript -->
     <script type="module" src="js/CardGame.js"></script>
